@@ -1,0 +1,24 @@
+{
+  "project": "MMALS-CAL",
+  "version": "0.3.2",
+  "tag": "v0.3.2",
+  "release": "Cross-Benchmark Evidence Synthesis submission patch",
+  "benchmarks": [
+    "MNIST",
+    "FashionMNIST",
+    "PermutedMNIST",
+    "RotatedMNIST",
+    "SplitCIFAR10",
+    "SplitCIFAR100",
+    "CORe50"
+  ],
+  "target_coverage": 0.9,
+  "alpha": 0.1,
+  "split_seed": 20260616,
+  "selected_rows": 250000,
+  "calibration_rows": 62500,
+  "deployment_rows": 187500,
+  "selected_traces_included": true,
+  "original_upstream_archives_included": false,
+  "runtime_online_detector_implemented": false
+}

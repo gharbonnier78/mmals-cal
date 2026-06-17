@@ -1,0 +1,36 @@
+dataset,check_id,check,passed
+MNIST,P001,Selected-policy trace integrity,True
+MNIST,P002,Deterministic 25/75 split independent of scores,True
+MNIST,P003,Calibration and deployment roles are disjoint,True
+MNIST,P004,Finite-sample conformal quantile used,True
+MNIST,P005,All five declared strategies executed,True
+FashionMNIST,P001,Selected-policy trace integrity,True
+FashionMNIST,P002,Deterministic 25/75 split independent of scores,True
+FashionMNIST,P003,Calibration and deployment roles are disjoint,True
+FashionMNIST,P004,Finite-sample conformal quantile used,True
+FashionMNIST,P005,All five declared strategies executed,True
+PermutedMNIST,P001,Selected-policy trace integrity,True
+PermutedMNIST,P002,Deterministic 25/75 split independent of scores,True
+PermutedMNIST,P003,Calibration and deployment roles are disjoint,True
+PermutedMNIST,P004,Finite-sample conformal quantile used,True
+PermutedMNIST,P005,All five declared strategies executed,True
+RotatedMNIST,P001,Selected-policy trace integrity,True
+RotatedMNIST,P002,Deterministic 25/75 split independent of scores,True
+RotatedMNIST,P003,Calibration and deployment roles are disjoint,True
+RotatedMNIST,P004,Finite-sample conformal quantile used,True
+RotatedMNIST,P005,All five declared strategies executed,True
+SplitCIFAR10,P001,Selected-policy trace integrity,True
+SplitCIFAR10,P002,Deterministic 25/75 split independent of scores,True
+SplitCIFAR10,P003,Calibration and deployment roles are disjoint,True
+SplitCIFAR10,P004,Finite-sample conformal quantile used,True
+SplitCIFAR10,P005,All five declared strategies executed,True
+SplitCIFAR100,P001,Selected-policy trace integrity,True
+SplitCIFAR100,P002,Deterministic 25/75 split independent of scores,True
+SplitCIFAR100,P003,Calibration and deployment roles are disjoint,True
+SplitCIFAR100,P004,Finite-sample conformal quantile used,True
+SplitCIFAR100,P005,All five declared strategies executed,True
+CORe50,P001,Selected-policy trace integrity,True
+CORe50,P002,Deterministic 25/75 split independent of scores,True
+CORe50,P003,Calibration and deployment roles are disjoint,True
+CORe50,P004,Finite-sample conformal quantile used,True
+CORe50,P005,All five declared strategies executed,True

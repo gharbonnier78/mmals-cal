@@ -1,0 +1,8 @@
+dataset,n_rows,n_score_classes,n_seeds,n_tasks,n_true_classes,after_task_values,selected_method,expected_selected_method,max_probability_sum_deviation,argmax_mismatch_count,duplicate_key_count,method_matches_manifest,probabilities_normalized,argmax_consistent,unique_sample_keys,passed
+MNIST,20000,6,5,5,6,[4],paired_rc2n_d_relaxed_clean_no_repair_release_gate_policy,paired_rc2n_d_relaxed_clean_no_repair_release_gate_policy,2.619963197503239e-07,0,0,True,True,True,True,True
+FashionMNIST,20000,6,5,5,6,[4],paired_rc2o_v1_feature_only_regime_hard_selector_policy,paired_rc2o_v1_feature_only_regime_hard_selector_policy,2.5700865058375655e-07,0,0,True,True,True,True,True
+PermutedMNIST,20000,6,5,5,6,[4],paired_rc2o_v1_feature_only_regime_hard_selector_policy,paired_rc2o_v1_feature_only_regime_hard_selector_policy,2.6319685286768646e-07,0,0,True,True,True,True,True
+RotatedMNIST,20000,6,5,5,6,[4],paired_rc2o_v1_feature_only_regime_hard_selector_policy,paired_rc2o_v1_feature_only_regime_hard_selector_policy,2.6228371985403953e-07,0,0,True,True,True,True,True
+SplitCIFAR10,20000,10,5,5,10,[4],paired_rc2o_v1_feature_only_regime_hard_selector_policy,paired_rc2o_v1_feature_only_regime_hard_selector_policy,2.244044023935743e-07,0,0,True,True,True,True,True
+SplitCIFAR100,50000,100,5,10,100,[9],paired_rc2o_v1_feature_only_regime_hard_selector_policy,paired_rc2o_v1_feature_only_regime_hard_selector_policy,3.376307683433666e-07,0,0,True,True,True,True,True
+CORe50,100000,50,5,10,50,[9],paired_rc2o_v1_feature_only_regime_hard_selector_policy,paired_rc2o_v1_feature_only_regime_hard_selector_policy,2.828203381488592e-07,0,0,True,True,True,True,True

@@ -1,0 +1,10 @@
+claim_id,status,claim,evidence,scope
+C001,SUPPORTED,Fresh oracle-regime calibration reaches near-target aggregate marginal coverage across all seven benchmarks.,Oracle aggregate coverage lies within +/-0.02 of 0.90.,Offline final-checkpoint replay; marginal coverage.
+C002,SUPPORTED,Global coverage can conceal serious local seed-regime undercoverage.,Minimum global seed-task coverage = 0.6167.,Worst cells reported separately.
+C003,SUPPORTED,Stale evidence can fail by undercoverage or excessive conservatism.,MNIST-family/CIFAR10 undercoverage; SplitCIFAR100/CORe50 broad conservative sets.,T0 quantile reused.
+C004,SUPPORTED,Wrong regime recall can invalidate an otherwise valid calibrator.,"CORe50 coverage 0.9011 -> 0.7255, loss 17.6 percentage points.",Oracle quantiles selected by exported context.
+C005,SUPPORTED,Actionability is distinct from coverage.,"CORe50 fresh coverage 0.9011, mean set 28.67/50, singleton ACTION 0.15%.",Singleton baseline.
+C006,PROHIBITED,Fresh calibration repairs a weak backbone.,Coverage can be restored using broad sets without improving top-1 competence.,Calibration is not a learning optimizer.
+C007,PROHIBITED,The singleton gate is a universal deployment policy or a formal lower bound on all forms of actionability.,It is a conservative common baseline; deployment policies are cost-dependent.,Research convention.
+C008,PROHIBITED,v0.3.2 implements online label-free regime detection and adaptive recalibration.,CUSUM/BOCPD and streaming buffers remain roadmap items.,Offline replay only.
+C009,PROHIBITED,"The 90% target is a conditional guarantee for every task, seed, class, or time interval.",Split conformal gives marginal coverage under exchangeability.,Local cells may under-cover.

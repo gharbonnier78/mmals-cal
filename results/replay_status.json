@@ -1,0 +1,8 @@
+{
+  "version": "0.3.2",
+  "benchmarks": 7,
+  "selected_rows": 250000,
+  "calibration_rows": 62500,
+  "deployment_rows": 187500,
+  "all_input_checks_pass": true
+}
