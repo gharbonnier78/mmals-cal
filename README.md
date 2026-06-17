@@ -8,7 +8,7 @@ MMALS-CAL is a standalone companion verification layer within the broader MMALS 
 
 ## Paper
 
-[Read the compiled arXiv-style article (PDF)](./paper/main.pdf)
+[Read the compiled arXiv-style article (PDF)](./main.pdf)
 
 The LaTeX source, bibliography, and publication figures are available in [`paper/`](./paper/).
 
