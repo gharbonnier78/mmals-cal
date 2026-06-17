@@ -1,0 +1,15 @@
+data/FashionMNIST_RC2O_selected_policy_scores.csv.gz
+figures/fashion_rc2o_patch.png
+notebooks/MMALS_CAL_v0_3_1_Cross_Benchmark_Evidence_Synthesis.ipynb
+notebooks/MMALS_CAL_v0_3_1_Cross_Benchmark_Evidence_Synthesis_EXECUTED.ipynb
+paper/figures/fashion_rc2o_patch.png
+paper/latex_build_iqc9c6f4/main.aux
+paper/latex_build_iqc9c6f4/main.fdb_latexmk
+paper/latex_build_iqc9c6f4/main.fls
+paper/latex_build_iqc9c6f4/main.log
+paper/latex_build_iqc9c6f4/main.out
+paper/latex_build_iqc9c6f4/main.pdf
+results/test_results.csv
+src/mmals_cal_v03.py
+tests/test_output.txt
+tests/test_synthesis.py

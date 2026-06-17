@@ -1,0 +1,16 @@
+{
+  "version": "0.3.2",
+  "tag": "v0.3.2",
+  "execution_status": "PASS",
+  "benchmarks_executed": 7,
+  "selected_rows_processed": 250000,
+  "calibration_rows": 62500,
+  "deployment_rows_evaluated_per_strategy": 187500,
+  "strategies": 5,
+  "selected_traces_included": 7,
+  "full_replay_script_included": true,
+  "tests_pass": true,
+  "paper_compiled": true,
+  "notebook_complete_replay_pass": true,
+  "online_change_detection_implemented": false
+}

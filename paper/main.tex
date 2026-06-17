@@ -1,0 +1,191 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.82in]{geometry}
+\usepackage{amsmath,amssymb,booktabs,graphicx,array,tabularx,longtable,float,microtype,enumitem,xcolor,hyperref,fancyhdr}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\hypersetup{colorlinks=true,linkcolor=blue!45!black,citecolor=blue!45!black,urlcolor=blue!45!black,pdftitle={MMALS-CAL v0.3.2},pdfauthor={Guillaume Harbonnier}}
+\pagestyle{fancy}\fancyhf{}\lhead{MMALS-CAL v0.3.2}\rhead{Harbonnier}\cfoot{\thepage}
+\newcommand{\mmalscal}{\textsc{MMALS-CAL}}
+\newcommand{\action}{\texttt{ACTION}}
+\newcommand{\nodecision}{\texttt{NO\_DECISION}}
+\title{\bfseries MMALS-CAL: Regime-Aware Conformal Evidence Verification for Continual-Learning Systems\\\large Version 0.3.2 - Offline Cross-Benchmark Evidence Synthesis}
+\author{Guillaume Harbonnier\\Independent MMALS Research Program}
+\date{June 2026}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Continual-learning evaluations emphasize accuracy, retention, and forgetting, but a deployed system must answer an additional question: is its current prediction supported by evidence that is valid for the present regime and sufficiently precise to justify action? We introduce \mmalscal{}, a standalone companion verification layer within the MMALS program. It separates predictive competence, context recognition, marginal coverage, prediction-set compactness, and operational actionability. We execute a harmonized offline replay over seven final-checkpoint selected-policy traces comprising 250,000 observations, five seeds per benchmark, and five calibration strategies. Fresh oracle-regime calibration reaches aggregate coverage between 0.8889 and 0.9062 for a 0.90 target, while singleton action rates range from 0.15\% on CORe50 to 92.43\% on SplitCIFAR10. Regime recognition remains a distinct requirement: on CORe50, coverage decreases from 0.9011 under fresh oracle-regime calibration to 0.7255 when the same regime-specific calibrators are selected by inferred context, a 17.6 percentage-point loss. SplitCIFAR10, SplitCIFAR100, and CORe50 use frozen small-CNN feature representations, so these results are conditional on those upstream representations. The singleton gate is a conservative baseline for autonomous single-label actionability, not a universal deployment policy. \mmalscal{} is not formal verification or a proof of universal safety; it is a fail-closed statistical evidence-verification framework that makes assumptions, local failures, abstention, and prohibited claims explicit.
+\end{abstract}
+
+\noindent\textbf{Keywords:} continual learning, conformal prediction, calibration, regime shift, context inference, selective prediction, abstention, evidence verification.
+
+\section{Introduction}
+A continual-learning system can retain earlier tasks and still be unsafe to use. It may apply an old confidence rule after a distribution shift, recall a calibrator associated with the wrong context, or obtain nominal coverage only by returning prediction sets too broad to support a useful decision. Accuracy and forgetting do not establish whether the evidence supporting the next action is current, local, and sufficiently precise.
+
+\mmalscal{} turns the statement
+\begin{quote}
+``I have learned, I recognize the context, and I do---or do not---have enough fresh evidence to act.''
+\end{quote}
+into four separately testable obligations. The central contribution is the five-axis decomposition: competence, coverage, compactness, context, and ACTION.
+
+\section{Origin and Standalone Positioning}
+The MMALS Chronicle describes a mycelium-inspired continual-learning architecture with inferred context, specialized hosts, routing, and route-function memory. The host organisms correspond to the trees; the fungal system is the mediating mycelial network; the mycorrhizal interface is the exchange relationship between hosts and fungal medium. The analogy motivates distributed specialization but supplies no statistical guarantee.
+
+\mmalscal{} is a companion in provenance but standalone in exposition. It does not train MMALS. It consumes exported probabilities, labels, task/regime identifiers used for offline analysis, and inferred-context evidence, then asks whether the uncertainty rule associated with the active situation remains valid and actionable.
+
+\section{Position in the Verification Framework}
+The wider evidence framework separates:
+\begin{description}[leftmargin=1.45in,style=nextline]
+\item[Metric Evaluator] Computes accuracy, forgetting, coverage, set size, context quality, and action rate.
+\item[Protocol Verifier] Checks provenance, no leakage, deterministic selection, and comparable units.
+\item[MMALS-CAL] Tests regime-aware calibration, compactness, and ACTION/NO-DECISION behavior.
+\item[Claim Verifier] Maps conclusions to supported, unsupported, or prohibited statements.
+\end{description}
+The first, second, and fourth layers verify the scientific work. \mmalscal{} additionally prepares the logic required by a future runtime evidence controller. Version 0.3.2 remains an offline final-checkpoint replay.
+
+\section{Component Status}
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{l l X}
+\toprule
+Component & v0.3.2 status & Evidence and remaining gap\\
+\midrule
+A. CUSUM/BOCPD regime detection & Absent online & Regime labels and exported context are replayed; no autonomous stream detector.\\
+B. No-leakage buffer & Implemented offline & Deterministic 25/75 reserved-calibration/deployment split independent of scores.\\
+C. Regime-aware conformal quantile & Implemented offline & Five strategies, including stale, oracle, inferred-bucket, and context-selected recall.\\
+D. ACTION/NO-DECISION gate & Operational but simplified & Singleton gate is a conservative common baseline, not a final deployment policy.\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Method}
+\subsection{The conformal calibration quantile}
+A quantile is a threshold below which a chosen fraction of sorted values falls. \mmalscal{} sorts calibration nonconformity scores
+\begin{equation}
+s(x,y)=1-p(y\mid x).
+\end{equation}
+For $n$ calibration scores, error level $\alpha$, and sorted scores $s_{(1)}\leq\cdots\leq s_{(n)}$, the finite-sample corrected index and quantile are
+\begin{equation}
+k=\min\left(n,\left\lceil(n+1)(1-\alpha)\right\rceil\right),\qquad \hat q=s_{(k)}.
+\end{equation}
+The prediction set is
+\begin{equation}
+\Gamma(x)=\left\{\, y:1-p(y\mid x)\leq\hat q \,\right\}.
+\end{equation}
+A larger $\hat q$ usually improves coverage by admitting more labels, but can reduce compactness and actionability. The finite-sample marginal guarantee relies on exchangeability between calibration and deployment observations; it is not automatically a conditional guarantee for every task, class, seed, or time interval.
+
+\subsection{No-leakage offline protocol}
+Each seed-task-class group is partitioned deterministically into 25\% reserved calibration and 75\% deployment. Selection is independent of probabilities, predictions, correctness, and context confidence. The release contains all seven compressed filtered traces and the complete replay implementation.
+
+\subsection{Five calibration strategies}
+We compare one global calibrator per seed; a T0 quantile reused as stale evidence; fresh oracle-regime calibration; calibration in inferred-context buckets; and oracle regime quantiles selected by inferred context. The last strategy isolates the damage caused by recalling a valid calibrator under the wrong regime.
+
+\subsection{Action gate}
+The common research rule is
+\begin{equation}
+\text{decision}(x)=\begin{cases}\action,&|\Gamma(x)|=1,\\\nodecision,&\text{otherwise}.\end{cases}
+\end{equation}
+This is a conservative baseline for autonomous single-label actionability. It is not the maximum achievable action rate, a universal product policy, or a formal lower bound without specifying the admissible policy family and its costs.
+
+\section{Experimental Scope}
+The synthesis covers MNIST Robust, FashionMNIST Robust, PermutedMNIST Robust, RotatedMNIST Robust, SplitCIFAR10, SplitCIFAR100, and CORe50. It contains 250,000 selected-policy observations: 62,500 reserved for calibration and 187,500 for deployment. Five seeds and five calibration strategies are evaluated per benchmark.
+
+SplitCIFAR10, SplitCIFAR100, and CORe50 use frozen small-CNN feature representations inherited from the source continual-learning runs. The results therefore characterize the combined upstream representation, learner, and calibration layer; they do not establish backbone invariance or end-to-end raw-pixel continual learning.
+
+\section{Expected Behavior of an Evidence-Verification Tool}
+An effective verifier should not make every input actionable. It should reveal at least four distinct outcomes:
+\begin{enumerate}[leftmargin=*]
+\item a competent model with fresh, compact evidence and frequent action;
+\item a competent model with stale evidence and undercoverage;
+\item nominal coverage obtained through broad, non-actionable sets;
+\item a valid calibrator invalidated by wrong regime recall.
+\end{enumerate}
+It should also fail closed: absent or insufficient evidence should produce \nodecision{} and a recorded reason rather than an unsupported certainty claim.
+
+\section{Cross-Benchmark Results}
+\begin{table*}[t]
+\centering\small
+\caption{Seven-benchmark profile under fresh oracle-regime calibration. Worst is minimum seed-task coverage.}
+\begin{tabular}{lrrrrrrr}
+\toprule
+Benchmark & Top-1 & Context & Coverage & Worst & Mean set & ACTION & Acc. if ACTION\\
+\midrule
+MNIST & 0.9642 & 1.0000 & 0.8889 & 0.8283 & 0.90 & 89.95\% & 98.82\% \\
+FashionMNIST & 0.9010 & 0.9200 & 0.9001 & 0.8433 & 1.03 & 89.83\% & 93.58\% \\
+PermutedMNIST & 0.9698 & 1.0000 & 0.9029 & 0.8617 & 0.92 & 91.69\% & 98.41\% \\
+RotatedMNIST & 0.9678 & 1.0000 & 0.9007 & 0.8217 & 0.91 & 91.32\% & 98.64\% \\
+SplitCIFAR10 & 0.9140 & 1.0000 & 0.9045 & 0.8617 & 1.00 & 92.43\% & 94.01\% \\
+SplitCIFAR100 & 0.5356 & 0.9329 & 0.9062 & 0.8533 & 8.53 & 9.44\% & 96.09\% \\
+CORe50 & 0.3149 & 0.7105 & 0.9011 & 0.8733 & 28.67 & 0.15\% & 63.66\% \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{figure}[H]\centering\includegraphics[width=.88\linewidth]{figures/five_axis_evidence_heatmap.png}\caption{Five-axis profile: competence, coverage, compactness, context, and ACTION.}\end{figure}
+
+Fresh oracle-regime calibration approaches the aggregate 0.90 target across all seven benchmarks. The operational meaning differs sharply. SplitCIFAR100 reaches 0.9062 coverage using an average set of 8.53 labels and acts on 9.44\% of observations. CORe50 reaches 0.9011 coverage using an average set of 28.67 labels out of 50 and acts on only 0.15\%.
+
+\begin{figure}[H]\centering\includegraphics[width=.88\linewidth]{figures/competence_vs_actionability.png}\caption{Competence and singleton actionability are related but not interchangeable.}\end{figure}
+\begin{figure}[H]\centering\includegraphics[width=.88\linewidth]{figures/coverage_vs_compactness.png}\caption{Coverage may be restored without restoring compactness.}\end{figure}
+
+\subsection{Global averages hide local failures}
+Aggregate coverage can appear acceptable while individual seed-regime cells under-cover severely. Worst-cell reporting is therefore part of the evidence contract, not an optional diagnostic.
+\begin{figure}[H]\centering\includegraphics[width=.88\linewidth]{figures/worst_regime_coverage.png}\caption{Worst seed-task coverage under global, fresh oracle, and context-selected oracle calibration.}\end{figure}
+
+\subsection{Stale evidence has two failure modes}
+Reusing the T0 quantile causes undercoverage on several MNIST-family runs and SplitCIFAR10. On SplitCIFAR100 and CORe50 it becomes highly conservative, retaining broad sets and little actionability. Staleness is a mismatch, not simply overconfidence.
+\begin{figure}[H]\centering\includegraphics[width=.88\linewidth]{figures/fresh_vs_stale_coverage.png}\caption{Fresh regime calibration versus stale T0 calibration.}\end{figure}
+
+\subsection{Wrong context recalls wrong evidence}
+On CORe50, coverage decreases from 0.9011 under fresh oracle-regime calibration to 0.7255 when the same regime-specific calibrators are selected using inferred context, a 17.6 percentage-point loss. A statistically valid calibrator is not safe when recalled for the wrong situation.
+\begin{figure}[H]\centering\includegraphics[width=.88\linewidth]{figures/context_accuracy_vs_recall_loss.png}\caption{Context errors translate into calibration-recall loss.}\end{figure}
+
+\section{FashionMNIST RC2O Consistency Patch}
+The original v0.3 synthesis used an older RC2M-alpha trace. Version 0.3.1 introduced the RC2O-v1 trace; version 0.3.2 preserves that correction in a fully reproducible release. Final average accuracy rises from 0.8872 to 0.9010, context accuracy from 0.88 to 0.92, mean set size falls from 1.0906 to 1.0269, and singleton action rises from 86.48\% to 89.83\%, while fresh coverage remains approximately 0.90.
+
+\begin{quote}
+\textbf{RC2O does not primarily win on coverage---coverage is imposed by calibration---but on predictive competence, context recognition, prediction-set compactness, and action rate.}
+\end{quote}
+
+\section{What the Results Say About MMALS-CAL}
+The evidence supports five conclusions: fresh calibration repairs coverage rather than competence; valid calibration can be invalidated by wrong regime recall; global coverage can hide local undercoverage; stale evidence can under-cover or become non-actionably conservative; and actionability is separate from coverage.
+
+These conclusions also define what \mmalscal{} is: an empirical and statistical evidence-verification layer that exposes disagreement between learning, regime recognition, uncertainty, and action. It is not a learned replacement for the backbone and not a universal safety proof.
+
+\section{Engineering After the PhD}
+A production implementation should remain a fail-closed evidence shell around MMALS. It requires a label-free early-warning detector, delayed-label confirmation, an immutable calibration registry, strict temporal separation of detection/calibration/validation windows, a conformal set builder, a cost-aware gate, and an evidence ledger. The online chain should be
+\begin{equation}
+\text{detect}\rightarrow\text{close}\rightarrow\text{buffer without leakage}\rightarrow\text{recalibrate}\rightarrow\text{validate}\rightarrow\text{reopen}.
+\end{equation}
+CUSUM should be an interpretable baseline and BOCPD a probabilistic comparator. TPUT/STRAT-Q may later optimize wrong-action, abstention, evidence, latency, and retention costs while keeping the conformal constraint explicit.
+
+\section{For a 12-Year-Old}
+Imagine a puzzle team with different specialists. The MMALS mycelial network helps send each puzzle to useful specialists. MMALS-CAL is the referee. It asks whether the team learned the puzzle, recognized its type, still has a fresh confidence rule, and has one clear answer. The conformal quantile is a line drawn across earlier ``surprise scores.'' Answers that are not more surprising than the line enter a candidate set. One candidate can mean ACTION; several candidates mean ``I am not sure yet.'' Saying ``one of 29 labels'' can be honest but not useful enough to act.
+
+\section{Limitations}
+This release is an offline replay of exported final-checkpoint traces. It does not implement online label-free CUSUM or BOCPD, delayed labels, streaming role assignment, live calibration expiry, or automatic gate reopening. Context values are exported by source runs and must still be audited for independence from explicit task identifiers. Coverage is marginal, not conditional for every subgroup or time interval.
+
+SplitCIFAR10, SplitCIFAR100, and CORe50 use frozen small-CNN feature representations. Low actionability may therefore reflect limitations of both the upstream representation and the continual learner; the present paper does not establish backbone sensitivity or invariance. Finally, the singleton gate is a conservative cross-benchmark baseline for autonomous single-label actionability, not a universal deployment policy or the maximum achievable action rate.
+
+\section{Reproducibility}
+Unlike v0.3.1, the v0.3.2 GitHub package contains the complete replay code and all seven compressed filtered traces. The original multi-hundred-megabyte evidence packages are not required for numerical reproduction and are omitted from Git. Exact filenames, checksums, and blank user-supplied Drive/archive location fields are provided for future provenance recovery.
+
+\section{Roadmap}
+The next stage is \textbf{MMALS-CAL v0.4: Online Regime Freshness and Change-Detection Harness}. It should compare fixed calibration, periodic recalibration, oracle change points, label-free CUSUM, delayed-label CUSUM, BOCPD, and adaptive conformal baselines. Evaluation must include false alarms, detection delay, coverage during transition, contamination, time to restored coverage, ACTION, wrong-action rate, and abstention cost.
+
+\section{Conclusion}
+\mmalscal{} adds a missing evidential layer to continual learning. It asks not only whether a system learned, but whether it recognized the situation, whether its uncertainty rule remains valid, whether the resulting set is compact, and whether action is justified. Calibration can control marginal coverage; it cannot manufacture competence, repair a wrong context, or turn a broad set into a useful decision. A trustworthy system must be able to say both ``I can act'' and ``I do not yet have enough fresh evidence.''
+
+\begin{thebibliography}{99}
+\bibitem{vovk2005} V. Vovk, A. Gammerman, and G. Shafer. \emph{Algorithmic Learning in a Random World}. Springer, 2005.
+\bibitem{angelopoulos2021} A. Angelopoulos and S. Bates. A gentle introduction to conformal prediction and distribution-free uncertainty quantification. arXiv:2107.07511, 2021.
+\bibitem{sadinle2019} M. Sadinle, J. Lei, and L. Wasserman. Least ambiguous set-valued classifiers with bounded error levels. JASA, 2019.
+\bibitem{gibbs2021} I. Gibbs and E. Candes. Adaptive conformal inference under distribution shift. NeurIPS, 2021.
+\bibitem{gibbs2022} I. Gibbs and E. Candes. Conformal inference for online prediction with arbitrary distribution shifts. arXiv:2208.08401, 2022.
+\bibitem{bhatnagar2023} A. Bhatnagar et al. Improved online conformal prediction via strongly adaptive online learning. ICML, 2023.
+\bibitem{adams2007} R. Adams and D. MacKay. Bayesian online changepoint detection. arXiv:0710.3742, 2007.
+\bibitem{page1954} E. Page. Continuous inspection schemes. Biometrika, 1954.
+\bibitem{thomas2019} P. Thomas et al. Preventing undesirable behavior of intelligent machines. Science, 2019.
+\end{thebibliography}
+\end{document}
