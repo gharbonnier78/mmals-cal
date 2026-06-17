@@ -1,6 +1,6 @@
 \documentclass[10pt]{article}
 \usepackage[margin=0.82in]{geometry}
-\usepackage{amsmath,amssymb,booktabs,graphicx,array,tabularx,longtable,float,microtype,enumitem,xcolor,hyperref,fancyhdr}
+\usepackage{amsmath,amssymb,booktabs,graphicx,array,tabularx,longtable,float,microtype,enumitem,xcolor,hyperref,fancyhdr,calc,listings}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \hypersetup{colorlinks=true,linkcolor=blue!45!black,citecolor=blue!45!black,urlcolor=blue!45!black,pdftitle={MMALS-CAL v0.3.2},pdfauthor={Guillaume Harbonnier}}
@@ -8,6 +8,18 @@
 \newcommand{\mmalscal}{\textsc{MMALS-CAL}}
 \newcommand{\action}{\texttt{ACTION}}
 \newcommand{\nodecision}{\texttt{NO\_DECISION}}
+
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\DeclareUnicodeCharacter{2192}{\ensuremath{\rightarrow}}
+\DeclareUnicodeCharacter{2193}{\ensuremath{\downarrow}}
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  columns=fullflexible,
+  keepspaces=true,
+  literate={→}{{$\rightarrow$}}1 {↓}{{$\downarrow$}}1 {“}{{``}}1 {”}{{''}}1 {’}{{'}}1
+}
 \title{\bfseries MMALS-CAL: Regime-Aware Conformal Evidence Verification for Continual-Learning Systems\\\large Version 0.3.2 - Offline Cross-Benchmark Evidence Synthesis}
 \author{Guillaume Harbonnier\\Independent MMALS Research Program}
 \date{June 2026}
@@ -176,6 +188,10 @@ The next stage is \textbf{MMALS-CAL v0.4: Online Regime Freshness and Change-Det
 
 \section{Conclusion}
 \mmalscal{} adds a missing evidential layer to continual learning. It asks not only whether a system learned, but whether it recognized the situation, whether its uncertainty rule remains valid, whether the resulting set is compact, and whether action is justified. Calibration can control marginal coverage; it cannot manufacture competence, repair a wrong context, or turn a broad set into a useful decision. A trustworthy system must be able to say both ``I can act'' and ``I do not yet have enough fresh evidence.''
+
+\clearpage
+\section{Annotated References: Abstracts, Engineer Translations, and Contributions to MMALS-CAL}
+\input{annotated_references.tex}
 
 \begin{thebibliography}{99}
 \bibitem{vovk2005} V. Vovk, A. Gammerman, and G. Shafer. \emph{Algorithmic Learning in a Random World}. Springer, 2005.

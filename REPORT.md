@@ -1,11 +1,5 @@
 # MMALS-CAL v0.3.2 - Submission Patch Report
 
-<p align="center">
-  <a href="./paper/main.pdf">
-    <img src="https://img.shields.io/badge/Open-Article-0B5FFF?style=for-the-badge&logo=adobeacrobatreader&logoColor=white" alt="Open PDF">
-  </a>
-</p>
-
 ## Changes from v0.3.1
 
 1. Quantifies the CORe50 oracle-to-context-selected loss in the abstract: 0.9011 to 0.7255, or 17.6 percentage points.
