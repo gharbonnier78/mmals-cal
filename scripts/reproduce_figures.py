@@ -1,52 +1,32 @@
 #!/usr/bin/env python3
 from pathlib import Path
 import argparse
-
+import shutil
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 ORDER = [
-    'MNIST',
-    'FashionMNIST',
-    'PermutedMNIST',
-    'RotatedMNIST',
-    'SplitCIFAR10',
-    'SplitCIFAR100',
-    'CORe50',
+    'MNIST', 'FashionMNIST', 'PermutedMNIST', 'RotatedMNIST',
+    'SplitCIFAR10', 'SplitCIFAR100', 'CORe50'
 ]
 
 
-def annotate_with_arrows(ax, points, label_positions):
-    """Attach readable labels to dense scatter points with leader arrows.
-
-    The label coordinates are expressed in data coordinates so the published
-    figure remains deterministic across Matplotlib versions and renderers.
-    """
-    for name, x, y in points:
-        tx, ty = label_positions[name]
+def annotate_points(ax, x, y, labels, offsets):
+    """Add deterministic, readable labels with leader lines."""
+    for xv, yv, label in zip(x, y, labels):
+        dx, dy = offsets.get(label, (8, 8))
         ax.annotate(
-            name,
-            xy=(x, y),
-            xytext=(tx, ty),
-            textcoords='data',
-            ha='center',
-            va='center',
-            fontsize=9.5,
-            arrowprops={
-                'arrowstyle': '-',
-                'linewidth': 0.9,
-                'shrinkA': 3,
-                'shrinkB': 4,
-                'connectionstyle': 'arc3,rad=0.08',
-            },
-            bbox={
-                'boxstyle': 'round,pad=0.16',
-                'facecolor': 'white',
-                'edgecolor': 'none',
-                'alpha': 0.92,
-            },
+            label,
+            xy=(xv, yv),
+            xytext=(dx, dy),
+            textcoords='offset points',
+            ha='left' if dx >= 0 else 'right',
+            va='bottom' if dy >= 0 else 'top',
+            fontsize=8,
+            bbox=dict(boxstyle='round,pad=0.18', fc='white', ec='none', alpha=0.88),
+            arrowprops=dict(arrowstyle='-', lw=0.8, shrinkA=2, shrinkB=2),
             annotation_clip=False,
         )
 
@@ -56,204 +36,121 @@ def main():
     parser.add_argument('--results-dir', default=str(ROOT / 'results'))
     parser.add_argument('--output-dir', default=str(ROOT / 'figures'))
     args = parser.parse_args()
-
-    results = Path(args.results_dir)
-    output = Path(args.output_dir)
+    results, output = Path(args.results_dir), Path(args.output_dir)
     output.mkdir(parents=True, exist_ok=True)
 
-    p = (
-        pd.read_csv(results / 'benchmark_profile.csv')
-        .set_index('dataset')
-        .loc[ORDER]
-        .reset_index()
-    )
+    p = pd.read_csv(results / 'benchmark_profile.csv').set_index('dataset').loc[ORDER].reset_index()
+    labels = p['dataset'].tolist()
 
-    # ------------------------------------------------------------------
-    # Competence versus actionability
-    # ------------------------------------------------------------------
-    fig, ax = plt.subplots(figsize=(10.5, 6.4))
-    ax.scatter(
-        p.source_final_avg_accuracy,
-        p.oracle_singleton_action_rate,
-        s=82,
-        zorder=3,
-    )
-    competence_points = [
-        (r.dataset, r.source_final_avg_accuracy, r.oracle_singleton_action_rate)
-        for _, r in p.iterrows()
-    ]
-    competence_labels = {
-        'CORe50': (0.365, 0.048),
-        'SplitCIFAR100': (0.605, 0.145),
-        'FashionMNIST': (0.790, 0.835),
-        'SplitCIFAR10': (0.790, 0.995),
-        'MNIST': (1.035, 0.825),
-        'RotatedMNIST': (1.035, 0.935),
-        'PermutedMNIST': (0.895, 1.015),
+    competence_offsets = {
+        'MNIST': (-44, 20),
+        'FashionMNIST': (10, -26),
+        'PermutedMNIST': (10, 26),
+        'RotatedMNIST': (-70, -22),
+        'SplitCIFAR10': (12, 4),
+        'SplitCIFAR100': (-62, 18),
+        'CORe50': (12, 10),
     }
-    annotate_with_arrows(ax, competence_points, competence_labels)
+    fig, ax = plt.subplots(figsize=(9, 6))
+    ax.scatter(p.source_final_avg_accuracy, p.oracle_singleton_action_rate, s=90)
+    annotate_points(ax, p.source_final_avg_accuracy, p.oracle_singleton_action_rate, labels, competence_offsets)
     ax.set_xlabel('Final average top-1 accuracy')
     ax.set_ylabel('Fresh singleton ACTION rate')
     ax.set_title('Predictive competence versus operational actionability')
-    ax.set_xlim(0.26, 1.075)
-    ax.set_ylim(-0.03, 1.055)
-    ax.grid(alpha=0.18, linewidth=0.6)
+    ax.set_xlim(.25, 1.03)
+    ax.set_ylim(-.05, 1.06)
     fig.tight_layout()
-    fig.savefig(output / 'competence_vs_actionability.png', dpi=220)
+    fig.savefig(output / 'competence_vs_actionability.png', dpi=190)
     plt.close(fig)
 
-    # ------------------------------------------------------------------
-    # Coverage versus compactness
-    # ------------------------------------------------------------------
-    compact = 1.0 - p.oracle_normalized_set_size
-    fig, ax = plt.subplots(figsize=(10.5, 6.4))
-    ax.scatter(compact, p.oracle_coverage, s=82, zorder=3)
-    compact_points = [
-        (r.dataset, float(compact.iloc[i]), r.oracle_coverage)
-        for i, r in p.iterrows()
-    ]
-    compact_labels = {
-        'CORe50': (0.490, 0.9050),
-        'MNIST': (0.800, 0.8842),
-        'FashionMNIST': (0.755, 0.8960),
-        'RotatedMNIST': (0.805, 0.8990),
-        'PermutedMNIST': (0.790, 0.9093),
-        'SplitCIFAR10': (0.850, 0.9160),
-        'SplitCIFAR100': (0.935, 0.9112),
+    compact = 1 - p.oracle_normalized_set_size
+    compact_offsets = {
+        'MNIST': (-55, -24),
+        'FashionMNIST': (10, 18),
+        'PermutedMNIST': (10, -22),
+        'RotatedMNIST': (-62, 22),
+        'SplitCIFAR10': (10, 8),
+        'SplitCIFAR100': (-75, 18),
+        'CORe50': (12, -20),
     }
-    annotate_with_arrows(ax, compact_points, compact_labels)
-    ax.axhline(0.9, linestyle='--', label='90% target', zorder=1)
+    fig, ax = plt.subplots(figsize=(9, 6))
+    ax.scatter(compact, p.oracle_coverage, s=90)
+    annotate_points(ax, compact, p.oracle_coverage, labels, compact_offsets)
+    ax.axhline(.9, linestyle='--', label='90% target')
     ax.set_xlabel('Prediction-set compactness = 1 - mean set size / K')
     ax.set_ylabel('Fresh oracle-regime coverage')
     ax.set_title('Coverage can be restored without restoring compactness')
-    ax.set_xlim(0.40, 0.97)
-    ax.set_ylim(0.882, 0.919)
-    ax.grid(alpha=0.18, linewidth=0.6)
-    ax.legend(loc='lower left')
+    ax.set_xlim(.38, 1.02)
+    ax.set_ylim(.884, .912)
+    ax.legend()
     fig.tight_layout()
-    fig.savefig(output / 'coverage_vs_compactness.png', dpi=220)
+    fig.savefig(output / 'coverage_vs_compactness.png', dpi=190)
     plt.close(fig)
 
-    # ------------------------------------------------------------------
-    # Fresh versus stale coverage
-    # ------------------------------------------------------------------
-    ax = p.set_index('dataset')[['oracle_coverage', 'stale_coverage']].plot(
-        kind='bar', figsize=(11, 6)
-    )
-    ax.axhline(0.9, linestyle='--', label='90% target')
+    ax = p.set_index('dataset')[['oracle_coverage', 'stale_coverage']].plot(kind='bar', figsize=(11, 6))
+    ax.axhline(.9, linestyle='--', label='90% target')
     ax.set_ylabel('Coverage')
     ax.set_xlabel('Benchmark')
     ax.set_title('Fresh regime calibration versus stale T0 calibration')
-    ax.set_ylim(0.70, 1.00)
+    ax.set_ylim(.70, 1.00)
     ax.legend()
     plt.xticks(rotation=35, ha='right')
     plt.tight_layout()
-    plt.savefig(output / 'fresh_vs_stale_coverage.png', dpi=220)
+    plt.savefig(output / 'fresh_vs_stale_coverage.png', dpi=190)
     plt.close()
 
-    # ------------------------------------------------------------------
-    # Context accuracy versus recall loss
-    # ------------------------------------------------------------------
-    fig, ax = plt.subplots(figsize=(10.5, 6.4))
-    ax.scatter(
-        p.context_accuracy,
-        p.context_recall_coverage_loss,
-        s=82,
-        zorder=3,
-    )
-    context_points = [
-        (r.dataset, r.context_accuracy, r.context_recall_coverage_loss)
-        for _, r in p.iterrows()
-    ]
-    context_labels = {
-        'CORe50': (0.755, 0.1795),
-        'FashionMNIST': (0.855, 0.0290),
-        'SplitCIFAR100': (0.940, 0.0430),
-        'SplitCIFAR10': (0.865, 0.0120),
-        'PermutedMNIST': (0.890, -0.0150),
-        'RotatedMNIST': (1.070, 0.0320),
-        'MNIST': (1.072, -0.0140),
+    context_offsets = {
+        'MNIST': (-28, 18),
+        'FashionMNIST': (10, 18),
+        'PermutedMNIST': (-70, -18),
+        'RotatedMNIST': (10, -28),
+        'SplitCIFAR10': (12, 4),
+        'SplitCIFAR100': (-76, 18),
+        'CORe50': (12, 8),
     }
-    annotate_with_arrows(ax, context_points, context_labels)
-    ax.axhline(0, linestyle='--', zorder=1)
+    fig, ax = plt.subplots(figsize=(9, 6))
+    ax.scatter(p.context_accuracy, p.context_recall_coverage_loss, s=90)
+    annotate_points(ax, p.context_accuracy, p.context_recall_coverage_loss, labels, context_offsets)
+    ax.axhline(0, linestyle='--')
     ax.set_xlabel('Exported context accuracy')
     ax.set_ylabel('Coverage loss when context selects a regime calibrator')
     ax.set_title('Regime-recognition errors can invalidate calibration recall')
-    ax.set_xlim(0.65, 1.115)
-    ax.set_ylim(-0.030, 0.190)
-    ax.grid(alpha=0.18, linewidth=0.6)
+    ax.set_xlim(.68, 1.025)
+    ymax = max(.02, float(p.context_recall_coverage_loss.max()) * 1.16)
+    ax.set_ylim(-.012, ymax)
     fig.tight_layout()
-    fig.savefig(output / 'context_accuracy_vs_recall_loss.png', dpi=220)
+    fig.savefig(output / 'context_accuracy_vs_recall_loss.png', dpi=190)
     plt.close(fig)
 
-    # ------------------------------------------------------------------
-    # Five-axis heatmap.  Use a dataset-indexed frame before assigning
-    # columns; constructing a DataFrame from RangeIndex Series and a string
-    # index silently aligns to NaN, which caused the broken published image.
-    # ------------------------------------------------------------------
-    matrix = p.set_index('dataset')[
-        [
-            'source_final_avg_accuracy',
-            'oracle_coverage',
-            'oracle_normalized_set_size',
-            'context_accuracy',
-            'oracle_singleton_action_rate',
-        ]
-    ].copy()
-    matrix['oracle_normalized_set_size'] = (
-        1.0 - matrix['oracle_normalized_set_size']
+    matrix = pd.DataFrame(
+        np.column_stack([
+            p.source_final_avg_accuracy.to_numpy(dtype=float),
+            p.oracle_coverage.to_numpy(dtype=float),
+            (1 - p.oracle_normalized_set_size).to_numpy(dtype=float),
+            p.context_accuracy.to_numpy(dtype=float),
+            p.oracle_singleton_action_rate.to_numpy(dtype=float),
+        ]),
+        index=p['dataset'].to_numpy(),
+        columns=['Competence', 'Coverage', 'Compactness', 'Context', 'ACTION'],
     )
-    matrix.columns = [
-        'Competence',
-        'Coverage',
-        'Compactness',
-        'Context',
-        'ACTION',
-    ]
-
     if matrix.isna().any().any():
-        raise ValueError('Five-axis profile contains NaN values after alignment.')
-
+        raise ValueError('Five-axis heatmap contains NaN values; aborting figure generation.')
     fig, ax = plt.subplots(figsize=(10, 6))
-    image = ax.imshow(matrix.to_numpy(), aspect='auto', vmin=0, vmax=1)
-    fig.colorbar(image, ax=ax, label='Value')
-    ax.set_yticks(np.arange(len(matrix)), matrix.index)
-    ax.set_xticks(
-        np.arange(len(matrix.columns)),
-        matrix.columns,
-        rotation=30,
-        ha='right',
-    )
+    img = ax.imshow(matrix.to_numpy(), aspect='auto', vmin=0, vmax=1)
+    fig.colorbar(img, ax=ax, label='Value')
+    ax.set_yticks(np.arange(len(matrix)), labels=matrix.index)
+    ax.set_xticks(np.arange(len(matrix.columns)), labels=matrix.columns, rotation=30, ha='right')
     for i in range(matrix.shape[0]):
         for j in range(matrix.shape[1]):
-            value = float(matrix.iloc[i, j])
-            text_color = 'white' if value < 0.50 else 'black'
-            ax.text(
-                j,
-                i,
-                f'{value:.2f}',
-                ha='center',
-                va='center',
-                color=text_color,
-                fontsize=9.5,
-            )
-    ax.set_title('MMALS-CAL five-axis evidence profile - v0.3.2')
+            ax.text(j, i, f'{matrix.iloc[i, j]:.2f}', ha='center', va='center', fontsize=8)
+    ax.set_title('MMALS-CAL five-axis evidence profile')
     fig.tight_layout()
-    fig.savefig(output / 'five_axis_evidence_heatmap.png', dpi=220)
+    fig.savefig(output / 'five_axis_evidence_heatmap.png', dpi=190)
     plt.close(fig)
 
-    # ------------------------------------------------------------------
-    # Worst-regime coverage
-    # ------------------------------------------------------------------
-    worst = p.set_index('dataset')[
-        [
-            'global_worst_coverage',
-            'oracle_worst_coverage',
-            'context_selected_oracle_worst_coverage',
-        ]
-    ]
+    worst = p.set_index('dataset')[['global_worst_coverage', 'oracle_worst_coverage', 'context_selected_oracle_worst_coverage']]
     ax = worst.plot(kind='bar', figsize=(11, 6))
-    ax.axhline(0.9, linestyle='--', label='90% target')
+    ax.axhline(.9, linestyle='--', label='90% target')
     ax.set_ylabel('Worst seed-task coverage')
     ax.set_xlabel('Benchmark')
     ax.set_title('Aggregate coverage hides local regime failures')
@@ -261,24 +158,26 @@ def main():
     ax.legend()
     plt.xticks(rotation=35, ha='right')
     plt.tight_layout()
-    plt.savefig(output / 'worst_regime_coverage.png', dpi=220)
+    plt.savefig(output / 'worst_regime_coverage.png', dpi=190)
     plt.close()
 
-    # ------------------------------------------------------------------
-    # Set size and action rate
-    # ------------------------------------------------------------------
-    set_action = p.set_index('dataset')[
-        ['oracle_normalized_set_size', 'oracle_singleton_action_rate']
-    ]
-    ax = set_action.plot(kind='bar', figsize=(11, 6))
+    sa = p.set_index('dataset')[['oracle_normalized_set_size', 'oracle_singleton_action_rate']]
+    ax = sa.plot(kind='bar', figsize=(11, 6))
     ax.set_ylabel('Fraction')
     ax.set_xlabel('Benchmark')
     ax.set_title('Normalized uncertainty-set size and singleton ACTION rate')
     ax.set_ylim(0, 1)
     plt.xticks(rotation=35, ha='right')
     plt.tight_layout()
-    plt.savefig(output / 'set_size_and_action_rate.png', dpi=220)
+    plt.savefig(output / 'set_size_and_action_rate.png', dpi=190)
     plt.close()
+
+    # Keep the canonical paper figures synchronized with generated figures.
+    if output.resolve() == (ROOT / 'figures').resolve():
+        paper_figures = ROOT / 'paper' / 'figures'
+        paper_figures.mkdir(parents=True, exist_ok=True)
+        for figure in output.glob('*.png'):
+            shutil.copy2(figure, paper_figures / figure.name)
 
     print(f'Wrote figures to {output}')
 

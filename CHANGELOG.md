@@ -12,11 +12,13 @@
 - add portable upstream artifact registry with blank Drive/archive locations;
 - preserve FashionMNIST RC2O correction introduced in v0.3.1.
 - expand the References chapter with the full annotated literature reading, engineer translations, MMALS-CAL contributions, limitations, and citation-placement guidance.
-## Figure integrity correction
 
-- fix an index-alignment defect that rendered the five-axis heatmap as `NaN`;
-- restore deterministic leader arrows between dense scatter points and their labels;
-- improve label placement for competence/actionability, coverage/compactness, and context-recall figures;
-- add automated checks for numeric five-axis data, required figure artifacts, and the compiled paper.
-- no benchmark result, calibration strategy, trace, or scientific claim changed.
+### Reviewer-orientation consolidation
 
+- add a dedicated paper chapter mapping the initial CAL gap analysis to v0.3.2;
+- distinguish context inference from sequential regime-change detection;
+- explain why label-dependent LAC nonconformity cannot be the sole early-warning signal;
+- define the future two-channel online design: label-free suspicion plus delayed-label confirmation;
+- clarify responsibilities across MMALS, Geometry-MMALS, CAL, TPUT/STRAT-Q, and the Verification Stack;
+- consolidate reviewer tensions, claim boundaries, and the remaining online transition;
+- restore the complete semantic-foundations dialogue in the canonical paper.

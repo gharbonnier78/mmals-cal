@@ -12,6 +12,8 @@ MMALS-CAL is a standalone companion verification layer within the broader MMALS 
 
 The LaTeX source, bibliography, and publication figures are available in [`paper/`](./paper/).
 
+For a concise map of what was missing before CAL, what v0.3.2 resolves, and what remains for an online system, see [`docs/CURRENT_STATUS_AND_REVIEWER_ORIENTATION.md`](./docs/CURRENT_STATUS_AND_REVIEWER_ORIENTATION.md).
+
 ## Release status
 
 Version 0.3.2 is an **offline, final-checkpoint, seven-benchmark replay**. It is not yet an online change-point detector or a runtime adaptive calibration controller.

@@ -1,0 +1,135 @@
+\section{From the Initial Gap Analysis to MMALS-CAL v0.3.2: Reviewer Orientation}\label{sec:gap-to-v032}
+
+This section consolidates the historical gap analysis, the current implementation status, and the remaining path to an online system. It is intentionally placed near the beginning of the paper so that a reviewer does not need to reconstruct the program's evolution from the method, roadmap, and semantic dialogue sections.
+
+\subsection{The initial missing layer}
+
+Before MMALS-CAL, the upstream MMALS program had already developed much of the continual-learning learner: context inference, route selection, host specialization, route-function memory, retention analysis, and extensive audit signals. The unresolved question was different:
+
+\begin{quote}
+Can the system establish that the evidence supporting its current decision is valid for the present regime, sufficiently compact, and strong enough to justify action?
+\end{quote}
+
+The initial design decomposed that missing layer into four components:
+\begin{equation}
+\text{regime detection}\rightarrow\text{no-leakage buffer}\rightarrow\text{regime-aware conformal calibration}\rightarrow\text{deployment gate}.
+\end{equation}
+
+The distinction matters because a continual-learning model can retain previous functions and still apply an invalid confidence rule after a shift. Learning, uncertainty qualification, and operational authorization are separate responsibilities.
+
+\subsection{Status transition: before CAL, v0.3.2, and the remaining gap}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{p{0.16\linewidth} p{0.20\linewidth} p{0.25\linewidth} X}
+\toprule
+Component & Before MMALS-CAL & Implemented in v0.3.2 & Remaining work\\
+\midrule
+A. Regime-change detection & Partial: RC2O and Geometry-MMALS inferred context and route, but did not formally detect a temporal distribution change. & Still absent online. Offline traces provide task/regime identifiers and exported context evidence. & Label-free early warning, delayed-label confirmation, CUSUM/BOCPD, detection delay, false-alarm control, persistent regime state, and change-point uncertainty.\\
+B. No-leakage calibration buffer & Absent as a conformal protocol. Train, validation, replay, and memory buffers did not guarantee detection/calibration/deployment separation. & Resolved for offline replay through deterministic 25/75 reserved-calibration/deployment assignment independent of scores and predictions. & Irreversible streaming role assignment and distinct temporal windows for detection, calibration, validation, and deployment.\\
+C. Regime-aware conformal quantile & Absent experimentally. Model scores and context signals existed, but no measured prediction-set coverage guarantee was attached to them. & Resolved offline through global, stale-T0, fresh-oracle, inferred-bucket, and context-selected-oracle strategies. & Online adaptation, small-buffer behavior, uncertain regime boundaries, delayed labels, and local-window coverage control.\\
+D. ACTION/NO-DECISION gate & Conceptual through TPUT, forward-backward control, and STRAT-Q cost reasoning. & Operational as a conservative singleton gate: ACTION only when $|\Gamma(x)|=1$. & A complete cost-aware gate combining regime confidence, calibration freshness, empirical coverage, latency, abstention cost, and human escalation.\\
+Evidence and claim audit & Many metrics and traces existed, but calibration-specific columns and explicit claim checks were incomplete. & Metric, Protocol, and Claim Verification are integrated into the release artifacts. & Runtime event linkage, online evidence ledgers, and standardized cross-framework signal contracts.\\
+\bottomrule
+\end{tabularx}
+\caption{What MMALS-CAL v0.3.2 resolves and what remains outside the offline replay scope.}
+\end{table}
+
+The change is therefore substantive rather than editorial. Components B and C moved from absent to implemented and reproducible in offline replay. Component D moved from a design idea to an executable, measurable convention. Component A remains the principal missing runtime capability.
+
+\subsection{Offline CAL and online CAL answer different questions}
+
+\textbf{Offline CAL} asks whether a calibration design is coherent, non-contaminated, reproducible, and supported by historical traces. It is an audit and experimental-validation harness. Its value remains permanent even after an online controller exists, just as a test bench remains necessary after an engine is deployed.
+
+\textbf{Online CAL} asks, at the arrival time of a new observation, whether the active evidence rule is still valid and which action should be taken now. It is a runtime component. Version 0.3.2 validates the offline structure required by that future controller; it does not claim to implement the controller itself.
+
+\subsection{Context inference is not regime-change detection}
+
+RC2O asks:
+\begin{quote}
+Which known context or route best explains this observation?
+\end{quote}
+
+A sequential change detector asks:
+\begin{quote}
+Has the process generating the observation stream changed sufficiently to invalidate the current regime hypothesis or confidence rule?
+\end{quote}
+
+These are related but non-equivalent questions:
+\begin{equation}
+\text{context inference}\neq\text{change detection}.
+\end{equation}
+
+A router may confidently assign observations to a known context while a gradual shift is invalidating the associated calibrator. Conversely, a single geometrically distant observation may be an outlier rather than a new regime. Formal temporal evidence is therefore required in addition to per-observation context inference.
+
+\subsection{Why the current nonconformity score cannot be the only label-free detector}
+
+The LAC score used in this release is
+\begin{equation}
+s(x,y)=1-p(y\mid x),
+\end{equation}
+which requires the true label $y$. It is appropriate for reserved calibration and for confirmation after labels arrive, but it is not by itself an immediate label-free runtime signal.
+
+A deployable design should therefore use two complementary channels:
+
+\begin{description}[leftmargin=1.55in,style=nextline]
+\item[Early warning without labels] Prediction entropy, maximum-score deficit, context entropy, context margin, route drift, latent displacement, host-function drift, and disagreement with functional memory may signal that the current regime assumption is becoming doubtful.
+\item[Confirmation with delayed labels] True nonconformity, empirical miscoverage, error rate, quantile drift, and coverage tests can confirm whether the suspected change has actually invalidated the calibration rule.
+\end{description}
+
+The first channel raises suspicion; the second supplies stronger statistical confirmation. Neither should be presented as a universal guarantee on its own.
+
+\subsection{Responsibilities across the MMALS stack}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{p{0.25\linewidth} X}
+\toprule
+Layer & Primary responsibility\\
+\midrule
+MMALS / RC2O & Learn, retain functions, infer context, select routes and hosts, and export predictive and routing evidence.\\
+Geometry-MMALS & Measure latent, route, host-function, and memory proximity; characterize whether a suspected regime resembles one or several known regimes.\\
+MMALS-CAL offline & Verify no-leakage splits, construct and compare conformal calibrators, measure coverage and compactness, and audit ACTION/NO-DECISION behavior on historical traces.\\
+Future MMALS-CAL online & Detect calibration staleness, manage streaming buffers, recalibrate, validate, close and reopen the gate, and preserve an evidence ledger.\\
+TPUT / STRAT-Q & Represent the cost and value of action, abstention, delay, new observation, retraining, route reuse, and human escalation.\\
+Metric / Protocol / Claim Verification & Verify that artifacts, protocols, metrics, and scientific statements match what was actually executed and measured.\\
+\bottomrule
+\end{tabularx}
+\caption{The layers compose, but none replaces the others.}
+\end{table}
+
+In compact form:
+\begin{equation}
+\text{MMALS proposes}\quad\rightarrow\quad\text{MMALS-CAL qualifies evidence}\quad\rightarrow\quad\text{Verification qualifies the demonstration}.
+\end{equation}
+
+\subsection{Reviewer tensions and explicit claim boundaries}
+
+Four points should remain visible when interpreting the results.
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{The singleton gate is deliberately strict.} It is a conservative, transparent comparison baseline for autonomous single-label actionability. It is not a universal deployment policy, and future work should report risk-action curves and cost-sensitive alternatives.
+\item \textbf{Oracle-regime calibration is an upper-reference condition, not a deployable solution.} The gap to context-selected calibration is therefore central. On CORe50, the coverage loss is 17.6 percentage points.
+\item \textbf{The CIFAR and CORe50 findings are conditional on frozen small-CNN features.} MMALS-CAL exposes the operational consequence of the combined representation and learner; it does not identify which upstream component caused low compactness.
+\item \textbf{Coverage is marginal.} A near-0.90 aggregate result is not a 0.90 guarantee for every task, class, seed, subgroup, or temporal window. Worst-regime and, later, worst-window reporting are mandatory parts of the evidence contract.
+\end{enumerate}
+
+\subsection{The current contribution and the remaining scientific uncertainty}
+
+The present evidence supports five narrow conclusions:
+
+\begin{enumerate}[leftmargin=*]
+\item competence, coverage, compactness, context recognition, and actionability are distinct properties;
+\item fresh calibration can restore aggregate coverage but cannot manufacture competence;
+\item stale evidence can fail through undercoverage or through excessive conservatism;
+\item a valid calibrator recalled under the wrong context can lose its validity;
+\item abstention and prohibited claims are legitimate outputs of an evidence-verification system.
+\end{enumerate}
+
+The principal uncertainty is no longer whether the offline replay has a meaningful interpretation. It is how to move from offline qualification under known regimes to online qualification in which the system must detect, characterize, and manage change autonomously. That transition requires four connected capabilities:
+
+\begin{equation}
+\text{detect change}\rightarrow\text{measure proximity}\rightarrow\text{reuse/recombine/create}\rightarrow\text{recalibrate and reopen without leakage}.
+\end{equation}
+
+The final objective is not merely a binary new-regime flag. It is to determine whether the changed situation is close to one known regime, overlaps several regimes, or lies far from all of them, so that routes, host functions, memories, and calibrators can be reused directly, warm-started, recombined, or rebuilt. This is the natural bridge between MMALS-CAL, Geometry-MMALS, and TPUT.

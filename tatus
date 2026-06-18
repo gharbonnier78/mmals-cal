@@ -1,0 +1,42 @@
+[33m9550853[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m fix(figures): restore valid heatmap values and readable scatter labels
+ .gitignore                                         |   6 [32m+[m
+ CHANGELOG.md                                       |  22 [32m++[m
+ CITATION.cff                                       |   9 [32m+[m
+ GITHUB_RELEASE_NOTES.md                            |   8 [32m+[m
+ RELEASE_NOTES.md                                   |   8 [32m+[m
+ SHA256SUMS.txt                                     | 180 [32m+++++[m[31m------[m
+ STATUS.json                                        |   9 [32m+[m[31m-[m
+ data/raw/CORe50_selected_policy_scores.csv.gz      | Bin [31m0[m -> [32m45283426[m bytes
+ ...FashionMNIST_RC2O_selected_policy_scores.csv.gz | Bin [31m0[m -> [32m2386593[m bytes
+ data/raw/MNIST_selected_policy_scores.csv.gz       | Bin [31m0[m -> [32m2649212[m bytes
+ .../PermutedMNIST_selected_policy_scores.csv.gz    | Bin [31m0[m -> [32m2586176[m bytes
+ .../raw/RotatedMNIST_selected_policy_scores.csv.gz | Bin [31m0[m -> [32m2722258[m bytes
+ .../SplitCIFAR100_selected_policy_scores.csv.gz    | Bin [31m0[m -> [32m26408538[m bytes
+ .../raw/SplitCIFAR10_selected_policy_scores.csv.gz | Bin [31m0[m -> [32m3872837[m bytes
+ data/selected_trace_registry.csv                   |   8 [32m+[m
+ docs/SEMANTIC_FOUNDATIONS_AND_RESEARCH_DIALOGUE.md | 318 [32m++++++++++++++++++[m
+ figures/competence_vs_actionability.png            | Bin [31m76697[m -> [32m115319[m bytes
+ figures/context_accuracy_vs_recall_loss.png        | Bin [31m89336[m -> [32m142332[m bytes
+ figures/coverage_vs_compactness.png                | Bin [31m97614[m -> [32m151197[m bytes
+ figures/five_axis_evidence_heatmap.png             | Bin [31m100766[m -> [32m175600[m bytes
+ figures/fresh_vs_stale_coverage.png                | Bin [31m108599[m -> [32m140704[m bytes
+ figures/set_size_and_action_rate.png               | Bin [31m106798[m -> [32m131218[m bytes
+ figures/worst_regime_coverage.png                  | Bin [31m131568[m -> [32m162280[m bytes
+ manifest.json                                      |  17 [32m+[m[31m-[m
+ paper/README.md                                    |  18 [32m++[m
+ paper/figures/competence_vs_actionability.png      | Bin [31m76697[m -> [32m115319[m bytes
+ paper/figures/context_accuracy_vs_recall_loss.png  | Bin [31m89336[m -> [32m142332[m bytes
+ paper/figures/coverage_vs_compactness.png          | Bin [31m97614[m -> [32m151197[m bytes
+ paper/figures/five_axis_evidence_heatmap.png       | Bin [31m100766[m -> [32m175600[m bytes
+ paper/figures/fresh_vs_stale_coverage.png          | Bin [31m108599[m -> [32m140704[m bytes
+ paper/figures/set_size_and_action_rate.png         | Bin [31m106798[m -> [32m131218[m bytes
+ paper/figures/worst_regime_coverage.png            | Bin [31m131568[m -> [32m162280[m bytes
+ paper/main.pdf                                     | Bin [31m884005[m -> [32m1174669[m bytes
+ paper/main.tex                                     |   4 [32m+[m
+ .../semantic_foundations_and_research_dialogue.md  | 318 [32m++++++++++++++++++[m
+ .../semantic_foundations_and_research_dialogue.tex | 357 [32m+++++++++++++++++++++[m
+ results/verification_status.json                   |   3 [32m+[m[31m-[m
+ scripts/reproduce_figures.py                       | 288 [32m+++++++++++++++[m[31m--[m
+ scripts/verify_release.py                          |  89 [32m++++[m[31m-[m
+ tests/test_release.py                              |  43 [32m++[m[31m-[m
+ 40 files changed, 1555 insertions(+), 150 deletions(-)

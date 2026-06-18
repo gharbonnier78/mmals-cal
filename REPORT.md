@@ -24,3 +24,7 @@
 ## Scientific status
 
 MMALS-CAL v0.3.2 is an offline evidence-verification and operational-readiness replay harness. It is not yet an online regime-change detector or runtime adaptive calibration controller.
+
+## Reviewer-orientation consolidation
+
+The canonical paper now includes a dedicated section that maps the initial A-D gap analysis to the current v0.3.2 implementation. It explicitly distinguishes context inference from temporal change detection, explains why the label-dependent LAC nonconformity score cannot be the sole early-warning signal, defines a future label-free plus delayed-label two-channel design, and assigns responsibilities across MMALS/RC2O, Geometry-MMALS, offline and online CAL, TPUT/STRAT-Q, and the Verification Stack.

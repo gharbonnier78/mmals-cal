@@ -4,3 +4,8 @@ __pycache__/
 *.pyc
 paper/build/
 results/reproduced/
+paper/*.aux
+paper/*.fdb_latexmk
+paper/*.fls
+paper/*.log
+paper/*.out

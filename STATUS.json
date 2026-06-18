@@ -13,9 +13,12 @@
   "paper_compiled": true,
   "notebook_complete_replay_pass": true,
   "online_change_detection_implemented": false,
+  "paper_pages": 30,
+  "reviewer_orientation_chapter_included": true,
   "semantic_foundations_chapter_included": true,
-  "paper_pages": 27,
-  "figure_integrity_pass": true,
-  "release_verification_checks": 10,
-  "pytest_tests_passed": 7
+  "annotated_references_chapter_included": true,
+  "release_checks_passed": 12,
+  "automated_tests_passed": 8,
+  "canonical_paper_path": "paper/main.pdf",
+  "root_main_pdf_present": false
 }

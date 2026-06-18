@@ -21,17 +21,10 @@
   "selected_traces_included": true,
   "original_upstream_archives_included": false,
   "runtime_online_detector_implemented": false,
-  "semantic_foundations_chapter_included": true,
-  "semantic_foundations_source_files": [
-    "docs/SEMANTIC_FOUNDATIONS_AND_RESEARCH_DIALOGUE.md",
-    "paper/semantic_foundations_and_research_dialogue.md",
-    "paper/semantic_foundations_and_research_dialogue.tex"
-  ],
-  "paper_pages": 27,
-  "figure_integrity_pass": true,
-  "figure_integrity_repairs": [
-    "five-axis heatmap index alignment fixed",
-    "leader arrows restored for dense scatter labels",
-    "automated figure artifact verification added"
-  ]
+  "paper_pages": 30,
+  "reviewer_orientation_chapter": "paper/from_initial_gap_analysis_to_v032.tex",
+  "semantic_foundations_chapter": "paper/semantic_foundations_and_research_dialogue.tex",
+  "canonical_paper_path": "paper/main.pdf",
+  "release_checks": 12,
+  "automated_tests": 8
 }
