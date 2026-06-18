@@ -9,3 +9,11 @@ Fresh calibration restores coverage; it does not manufacture competence. On CORe
 ## Reproducibility
 
 The release includes all seven filtered traces and the complete replay implementation. Original upstream MMALS archives are excluded because of size and are not required for reproduction; their filenames and checksums are registered for later Drive or archive linking.
+## Figure integrity correction
+
+- fix an index-alignment defect that rendered the five-axis heatmap as `NaN`;
+- restore deterministic leader arrows between dense scatter points and their labels;
+- improve label placement for competence/actionability, coverage/compactness, and context-recall figures;
+- add automated checks for numeric five-axis data, required figure artifacts, and the compiled paper.
+- no benchmark result, calibration strategy, trace, or scientific claim changed.
+

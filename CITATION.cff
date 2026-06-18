@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+title: "MMALS-CAL: Regime-Aware Conformal Evidence Verification for Continual-Learning Systems"
+message: "Please cite the article and release when using this evidence package."
+type: software
+authors:
+  - family-names: Harbonnier
+    given-names: Guillaume
+version: 0.3.2
+date-released: 2026-06-17

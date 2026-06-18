@@ -20,5 +20,18 @@
   "deployment_rows": 187500,
   "selected_traces_included": true,
   "original_upstream_archives_included": false,
-  "runtime_online_detector_implemented": false
+  "runtime_online_detector_implemented": false,
+  "semantic_foundations_chapter_included": true,
+  "semantic_foundations_source_files": [
+    "docs/SEMANTIC_FOUNDATIONS_AND_RESEARCH_DIALOGUE.md",
+    "paper/semantic_foundations_and_research_dialogue.md",
+    "paper/semantic_foundations_and_research_dialogue.tex"
+  ],
+  "paper_pages": 27,
+  "figure_integrity_pass": true,
+  "figure_integrity_repairs": [
+    "five-axis heatmap index alignment fixed",
+    "leader arrows restored for dense scatter labels",
+    "automated figure artifact verification added"
+  ]
 }

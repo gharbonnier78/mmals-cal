@@ -1,0 +1,318 @@
+# Semantic Foundations and Research Dialogue
+
+This section preserves the full translated research dialogue because the gradual clarification of the terms is itself part of the methodology. The purpose is not only to add definitions, but to make explicit how those definitions change the way the MMALS-CAL problem is understood, defended, and extended.
+
+## The conformal calibration quantile - definition
+
+**Starting point: what is a quantile in the general sense?**
+
+Before discussing conformal calibration, let us recall what a quantile is. If we take a list of numbers and sort them from smallest to largest, the 90% quantile is the value below which 90% of the numbers in the list fall. For example, if we sort 100 scores and the 90% quantile is 0.42, this means that 90 of those 100 scores are less than or equal to 0.42, and 10 are greater than it.
+
+**The score being sorted here: the nonconformity score**
+
+In MMALS-CAL, for each observation `x` whose true class `y` is known, we compute a nonconformity score:
+
+$$
+s(x,y)=1-p(y\mid x)
+$$
+
+where `p(y | x)` is the probability assigned by the model to the true class `y` for that observation. Concretely: if the model was highly confident and correct, `p(y|x)` is close to 1, so the score `s` is close to 0 - little deviation, little "nonconformity." If the model was surprised by the true answer, meaning that it assigned a low probability to the correct class, the score `s` is close to 1 - a large deviation.
+
+This score is computed on every observation in the calibration set - that is, the dataset reserved exclusively for this purpose, never used by the model during training, and distinct from the deployment set (see component B on the no-leakage buffer).
+
+**The conformal quantile itself**
+
+All of these nonconformity scores are sorted from smallest to largest. For a target coverage level - say 90%, which corresponds to a tolerated error level $\alpha=0.10$ - we look for the value located just above 90% of the observed scores. Formally, for `n` calibration observations:
+
+$$
+k=\min\left(n,\left\lceil(n+1)(1-\alpha)\right\rceil\right)
+$$
+
+$$
+\hat q=s_{(k)}
+$$
+
+In other words, we take the $k$-th smallest score in the sorted list, with a small adjustment - `(n+1)` rather than `n` - that guarantees the statistical property even for small samples. This value $\hat q$ is the **conformal quantile**.
+
+**How this quantile becomes a decision threshold**
+
+Once $\hat q$ has been computed, it is used to construct the prediction set for a new observation: the set includes **all** classes whose nonconformity score would be less than or equal to $\hat q$:
+
+$$
+\Gamma(x)=\left\{y:1-p(y\mid x)\leq\hat q\right\}
+$$
+
+In other words, $\hat q$ sets the tolerance bar. The smaller $\hat q$ is, the more restrictive the prediction set will be: few classes are included, potentially only one singleton, so ACTION may be possible. The larger $\hat q$ is, the broader the set will be: several classes are included, so NO-DECISION becomes more likely, but the coverage guarantee becomes more robust.
+
+**Why "conformal," and why the guarantee holds**
+
+The term comes from *conformal prediction* (Vovk et al., 2005): a new observation is said to be "conformal" with the rest of the set when its nonconformity score does not deviate too much from the scores already observed during calibration. The statistical guarantee - that the true class belongs to the set $\Gamma(x)$ in at least 90% of cases - relies on an assumption called *exchangeability*: the calibration and deployment observations must come from the same distribution, that is, from the same regime.
+
+**Why "per regime" changes everything**
+
+This is exactly where the preceding topic - the regime-aware conformal quantile - connects to this one. If $\hat q$ is computed on data that mix several different regimes, the exchangeability assumption is locally violated: the global quantile may be valid on average, but too optimistic for a difficult regime and too conservative for an easy regime. Recomputing a distinct $\hat q$ for each regime - using only the calibration observations assigned to that regime - restores the validity of the guarantee at the local level, which is precisely what MMALS-CAL tests through its five calibration strategies.
+
+---
+
+## Is regime-change detection therefore fundamental in continual learning?
+
+> Regime-change detection is therefore fundamental in continual learning, especially because I imagine that industrial or production continual-learning systems learn and infer continuously, update themselves continuously, partly on known regimes that have changed, or on genuinely new regimes with no overlap - or only partial overlap - with what already exists. This is what we would like to achieve: not restart from zero for every learning episode, but progressively reuse whatever overlaps with existing knowledge.
+
+Yes - and I think this identifies something structurally important that goes beyond MMALS-CAL itself: regime-change detection is not one feature among others in continual learning; it is the condition that makes almost everything else valid.
+
+**Why it is fundamental rather than optional**
+
+In continual learning, the system learns under an implicit assumption of local stability - "what I learned remains valid as long as nothing has changed." Yet this assumption is rarely tested explicitly in most conventional continual-learning architectures. They focus on retention, meaning not forgetting, and transfer, meaning reusing prior knowledge, without ever asking: "Am I still in a context where my current confidence rule applies?"
+
+The result is exactly what CAL demonstrates empirically: a valid calibrator applied under the wrong regime is not safe. This is not a calibration defect; it is a *detection* defect. Calibration can repair only what detection has correctly identified upstream.
+
+**The industrial case described here is precisely the difficult case**
+
+Two very different situations arise in a production system.
+
+The first case - a return to a known regime - is theoretically the simplest, but it is also where systems often fail silently. The paper demonstrates this with CORe50: earlier contexts are frequently misrecognized, so the system believes it is in a new regime, or worse, believes it is in the wrong known regime and applies an invalid quantile without producing any obvious alarm. The displayed confidence remains plausible. This is the most dangerous scenario because it does not generate an obvious error signal; it generates false confidence.
+
+The second case - a new regime that partially overlaps with existing ones - is the objective being formulated here: do not restart from zero, but also do not pretend that the old calibrator applies unchanged. This is exactly the problem that CUSUM and BOCPD address in different ways.
+
+CUSUM is binary: it declares a change or no change. It says nothing about the degree of overlap with the previous regime.
+
+BOCPD is more interesting for this precise case because it maintains a probability distribution over the *run length*. It can therefore express graded uncertainty - "probably a new regime, but with a 30% chance that this is still a variant of the previous one" - rather than forcing an immediate hard decision. This is closer to what partial overlap requires: the system does not need to decide immediately between "old" and "new"; it can remain in a `SUSPECTED_SHIFT` state while calibration is progressively reconstructed.
+
+**The deeper problem this reveals**
+
+What is being described - learning continuously without restarting from zero, while partially overlapping with existing knowledge - requires a notion of regime that is not binary, known versus unknown, but *metric*: how far am I from the closest regime that I already know?
+
+This is where Geometry-MMALS becomes relevant, as the status document already noted: distance in latent space, distance between route distributions, local curvature. Change detection through CUSUM or BOCPD answers "Has something changed?" but does not answer "Does this new regime resemble an already calibrated regime, and by how much?"
+
+Concretely, this suggests that component A as described in the paper - binary states such as stable, suspected, and calibrating - is probably an intermediate stage. The actual industrial target is a detector that does not produce only a flag, but a distance or a probability of overlap with every known regime. That would allow the system to choose among three actions rather than two: reuse an existing calibrator, recalibrate from a nearby calibrator as a warm start, or calibrate entirely from scratch.
+
+> Is this the type of graded overlap mechanism envisioned for the roadmap after stabilizing CAL v0.3.1?
+
+> Yes, Claude, this is exactly where I want to go. I want to understand how geometric proximity coupled with a probability of change can be used, how the system should react according to distance and/or change probability, how it can identify which known regime or regimes the new situation might correspond to, and therefore which routes and functions - including hosts - should be reused, retrained, or readapted.
+
+This is a precise formulation of the problem, and it has a three-stage structure that is worth separating clearly before considering how the stages interact, because they are three mathematically different objects that are easily confused.
+
+### Stage 1 - The change signal: the probability of change
+
+This is what CUSUM or BOCPD produces: has something changed, and with what confidence? It is a scalar signal or a distribution over the run length. It says nothing about the *nature* of the change, only about its existence.
+
+### Stage 2 - Geometric proximity: where are we, relative to what?
+
+This is what Geometry-MMALS can contribute. Once a change is suspected, where is the new observation located in relation to the space of previously known regimes? This is a distance - in latent space, route space, or the functional space of hosts. It is no longer binary; it is metric: close to regime 3, halfway between regimes 3 and 7, or far from every known regime.
+
+### Stage 3 - The reuse decision: what action should be taken on which structure?
+
+This is the new part being introduced, and it is the part that is most absent today: how should the combination of the first two stages determine what to do with existing routes and hosts?
+
+---
+
+## How the change signal and geometric distance should combine
+
+The key point is that the two signals are not interchangeable. They answer orthogonal questions. A strong change signal with a short geometric distance is different from a strong change signal with a large distance, and both are different from a weak change signal with a short distance. The problem therefore forms a two-axis map rather than one scalar score.
+
+When the change signal is weak - the system is probably still in the current regime - and the distance to the current regime is small, nothing needs to be done. This is the stable case; the current quantile remains valid.
+
+When the change signal is strong but the distance to the closest known regime is small, this is exactly the partial-overlap case. The system has changed, but not toward the unknown: it has moved toward something resembling what it already knows, or toward a combination of known regimes. This is the most interesting industrial case because it allows a graded reaction rather than a binary choice.
+
+When the change signal is strong and the distance to every known regime is large, the situation is a genuinely new regime. Full recalibration is required, and potentially a new host must be trained.
+
+When the change signal is weak but the distance increases progressively - slow drift without a sharp breakpoint - this is a case that neither CUSUM nor BOCPD captures well on its own. It is instead a continuous-drift signal that should trigger periodic revalidation of the quantile even when no breakpoint has been declared.
+
+---
+
+## Reusing routes and hosts: three reaction regimes, not two
+
+The implicit insight is that between "reuse everything unchanged" and "retrain everything from scratch," there is an intermediate level that is probably the real added value of the approach.
+
+**Direct reuse** - The distance to one known regime is small. Recalibrate that regime's existing quantile without changing the route or the host. This is the trivial case already covered by the paper's `context-selected oracle` strategy, provided that context recognition is reliable.
+
+**Recombination or warm start** - The distance is small to several known regimes simultaneously, or intermediate to one regime. In this case, the existing route probably should not be discarded, but the quantile must be reconstructed from a mixture or interpolation of the calibrators of nearby regimes rather than rebuilt entirely from scratch. This is the conformal equivalent of fine-tuning rather than new training. The open question is how to weight the contribution of each nearby regime: by geometric distance itself, by a combination of distance and change confidence, or by another learned or calibrated principle?
+
+**New formation** - The distance to every known regime is large. A new host or route is required, along with entirely fresh calibration. This case is already covered by CAL under `fresh oracle calibration`, but without the geometric trigger that would decide when to use it rather than attempting a recombination.
+
+---
+
+## What is most concretely missing to formalize this
+
+The hardest point is probably not change detection or geometric distance separately; both already exist as components - CUSUM or BOCPD on one side, Geometry-MMALS on the other. The difficult part is the decision function that transforms `(change probability, distance to known regimes)` into one of the three actions above, with a threshold that is itself statistically calibrated. Otherwise, the system falls back into the same problem as the ACTION/NO-DECISION gate: an unverified heuristic rule.
+
+One possible direction is to formulate this as a multiclass classification problem over the space `(change score, distance)`, where the classes are exactly the three reaction regimes. That decision could itself be conformally calibrated, in the same spirit as CAL but applied one level higher, to the routing or reuse decision rather than to the final classification decision.
+
+> Should this be seen as an extension of CAL - CAL applied to the reuse decision - or as a separate component positioned before CAL in the pipeline?
+
+> We must first distinguish offline CAL from online CAL. I think offline CAL will always remain useful and should continue to be maintained and documented. We will probably need to document, and perhaps standardize, the parameters and signals that should be recorded during learning, inference, or decision runs for every possible component in a continual-learning, reinforcement-learning, or broader adaptive system. This would make the tool generic, without constantly having to return to `.pt` files for PyTorch, other checkpoint formats for Keras, and so on. At what level in the online pipeline would the multiclass classifier over this space be placed? And, following the same "keep it simple" principle, do we really need one more component? Could there instead be a natural mathematical inference and routing mechanism without adding another rule box that itself needs calibration, even if statistically?
+
+This question is excellent and touches something fundamental about the architecture.
+
+---
+
+## First, the offline-versus-online distinction
+
+Offline CAL has permanent and independent value. It answers a different question from online CAL.
+
+Offline CAL asks: *Is the calibration structure that I designed coherent, uncontaminated, and capable of producing measurable guarantees on historical traces?* It is an audit tool, an experimental-validation tool, and a scientific-publication tool. It does not disappear when an online loop is added; instead, it becomes the test bench used to validate whether the online version behaves as expected.
+
+Online CAL asks: *At the moment when I observe this datum, is my confidence rule still valid, and what decision should I take now?* It is a runtime component.
+
+The two must coexist exactly as in other engineering domains: the test bench does not disappear when the engine runs in production.
+
+---
+
+## Standardizing signals may be the most durable contribution
+
+The point being raised implicitly is a real and under-addressed problem in continual-learning research: no standard format exists for what a learning, inference, or decision run must export to be independently auditable, regardless of framework.
+
+Concretely, each component in the pipeline - whether host, router, memory, or gate - should export a minimal set of signals in a neutral format, independent of PyTorch, Keras, JAX, or any other framework. Something like:
+
+```text
+observation_id
+timestamp
+regime_id_inferred
+regime_confidence
+nonconformity_score
+prediction_set
+action_declared
+route_used
+host_used
+calibrator_id
+calibrator_age
+```
+
+This neutral format would allow offline CAL to apply to any continual-learning system, not only MMALS. It is a generic contribution with real standardization value. It is also "keep it simple" in the best sense: no dependency on `.pt` checkpoints or internal framework-specific structures, only clean signals emitted by each component.
+
+This should probably become a dedicated section in the CAL documentation, or even a separate specification document.
+
+---
+
+## Where the multiclass reuse classifier would sit in the online pipeline
+
+The question is precise: where should it be placed, and is another explicit box really necessary?
+
+In the current pipeline:
+
+```text
+Incoming observation
+    |
+RC2O - context and route inference
+    |
+Selected host - prediction
+    |
+CAL - conformal quantile + ACTION/NO-DECISION gate
+```
+
+The open question is where the decision "reuse / recombine / retrain" belongs. The deeper question is whether that decision requires an explicit additional component, or whether it should emerge naturally from RC2O routing coupled with geometry.
+
+The honest answer is: it depends on what RC2O already produces.
+
+If RC2O produces not only one inferred regime but a *confidence distribution over several regimes simultaneously* - for example, "60% regime 3, 30% regime 7, 10% unknown" - then the recombination decision does not require another component. It is already implicit in the distribution: short distance to one dominant regime implies direct reuse; probability mass spread across several nearby regimes implies recombination; probability mass on `unknown` implies new formation. Natural routing *is* the decision.
+
+If RC2O produces only one regime and a scalar confidence, the information required for recombination is missing. RC2O must then be enriched, or an explicit layer must be added.
+
+Therefore the real question is not "Do we need one more box?" but "Does RC2O already produce a distribution over regimes, or only an argmax?"
+
+---
+
+## Natural mathematical routing without an additional rule box
+
+This is the deepest question, and it has a partially honest answer.
+
+Conformal prediction itself is a form of natural routing in a precise sense: it does not choose one class, but includes every class compatible with the available evidence. It already lets the mathematics determine the degree of certainty without a heuristic rule.
+
+The problem is that this property does not yet exist at the *meta-routing* level - the decision over regimes and calibrators. At present, this level still uses rules such as thresholds $\tau$ on regime confidence, freshness criteria, and coverage tests. These rules are reasonable, but heuristic.
+
+The direction toward "fewer boxes, more mathematics" would be to apply conformal prediction one level higher: produce not one calibrator, but a *set of calibrators compatible with the current geometric evidence*, weighted by their distance to the observed regime. The final quantile would be an aggregation of those calibrators, which would amount to an automatic warm start without a binary rule deciding which calibrator to choose.
+
+This remains to be formalized, but the principle is consistent with "keep it simple" in the sense that it does not add another rule box; it extends the same conformal mechanism to a higher level of abstraction.
+
+> Should we begin by sketching the standardized signal format - the interface contract that every pipeline component should satisfy in order to make CAL generic?
+
+> Before doing that, we should first review everything MMALS already generates as signals. There is a profusion of them: EER-like metrics, LSA, Hydro, and many others. We should analyze an existing run and the different playbooks and results: MMALS core with RC2O, MMALS Geometry, [mmals-tput](https://github.com/gharbonnier78/mmals-tput), the MMALS Goal-Adaptive Geo/RL/Forward-Backward package, [mmals-v1.1-continual-learning-evidence](https://github.com/gharbonnier78/mmals-v1.1-continual-learning-evidence) - which should be similar to MMALS core but actually adds the continual-learning layer and analyzes losses caused by learning other regimes over time - and [synthetic-data-scaling-mmals](https://github.com/gharbonnier78/synthetic-data-scaling-mmals), a public multilevel analysis of synthetic-data scaling and model collapse, inspired by Julia Kempe's lecture, with reproducible experiments and research directions for MMALS, STRAT-Q, probabilistic MTP, and related work.
+>
+> Additional repositories include:
+>
+> - [synthetic-data-scaling-mmals](https://github.com/gharbonnier78/synthetic-data-scaling-mmals) - **Public.** Multilevel analysis of synthetic-data scaling and model collapse, inspired by Julia Kempe's lecture, with reproducible experiments and research directions for MMALS, STRAT-Q, probabilistic MTP, and related work. **Primary repository language:** TeX. **License shown:** Other. **Status at the time of the dialogue:** updated yesterday.
+> - [geometry-mmalls-g1](https://github.com/gharbonnier78/geometry-mmalls-g1) - **Public.** Grounded functional geometry for MMALS continual learning: context manifolds, route-simplex dynamics, causal host specialization, and functional memory transport. **Primary repository language:** Jupyter Notebook. **License shown:** MIT License. **Status at the time of the dialogue:** updated yesterday.
+> - [mmals-stable-plastic-context-memory](https://github.com/gharbonnier78/mmals-stable-plastic-context-memory) - **Public.** Dataset-agnostic and backward-compatible stable-plastic context memory for MMALS, with legacy reproduction, adaptive fusion, deployed-posterior distillation, cross-dataset regression gates, and revision evidence. **Primary repository language:** Jupyter Notebook. **License shown:** Other. **Status at the time of the dialogue:** updated 3 days earlier.
+> - [mmals-tput](https://github.com/gharbonnier78/mmals-tput) - **Public.** Research specification and reference implementation of MMALS-TPUT, unifying latent geometry, energy-guided routing, dual memory, goal-conditioned control, RC2O-to-RL extensions, and Geometry-G1 validation. **Primary repository language:** Python. **License shown:** MIT License. **Status at the time of the dialogue:** updated 3 days earlier.
+> - [mmals-v1.1-continual-learning-evidence](https://github.com/gharbonnier78/mmals-v1.1-continual-learning-evidence) - **Public.** Full MMALS v1.1 research status, consolidating MNIST-family foundations, SplitCIFAR10 robust qualification, SplitCIFAR100 and CORe50 diagnostics, and the CORe50 v2.3 rescue ablation. **Primary repository language:** Jupyter Notebook. **License shown:** Other. **Status at the time of the dialogue:** updated 4 days earlier.
+> - [mmals-goal-adaptive-control](https://github.com/gharbonnier78/mmals-goal-adaptive-control) - **Public.** Goal-adaptive Geo/RL/Forward-Backward control layer for MMALS, extending RC2O routing with objective-conditioned route selection under accuracy, retention, cost, drift, and specialization trade-offs. **Primary repository language:** Python. **License shown:** Other. **Status at the time of the dialogue:** updated 5 days earlier.
+> - [mmals-rc2o-splitcifar10-continual-learning](https://github.com/gharbonnier78/mmals-rc2o-splitcifar10-continual-learning) - **Public.** External continual-learning bridge experiments for MMALS/RC2O, starting with robust SplitCIFAR10 evidence over frozen A1 visual features and audited policy selection. **Primary repository language:** Jupyter Notebook. **License shown:** Other. **Status at the time of the dialogue:** updated 5 days earlier.
+> - [mmals-rc2o-prep-selector-regret-regime-audit](https://github.com/gharbonnier78/mmals-rc2o-prep-selector-regret-regime-audit) - **Public.** MMALS RC2O-prep audit: selector regret, feature-only regime estimation, and regime-certified safe deployment for auditable continual learning. **Primary repository language:** Python. **License shown:** Other. **Status at the time of the dialogue:** updated 2 weeks earlier.
+
+That is correct: before designing an ideal interface contract, we must inventory what already exists in the MMALS ecosystem. Otherwise, we risk reinventing signals that are already available, or worse, proposing a format that conflicts with signals already produced.
+
+---
+
+## A concrete signal-inventory process
+
+The repositories should be reviewed in a logical order from the most upstream to the most downstream component in the pipeline, in order to map the signals already exported:
+
+```text
+mmals-v1.1-continual-learning-evidence    <- base CL layer, learning signals
+    |
+mmals-rc2o-splitcifar10                   <- RC2O, routing and context signals
+    |
+mmals-rc2o-prep-selector-regret           <- regret, regime, selector audit
+    |
+geometry-mmalls-g1                        <- geometric signals: distance, curvature
+    |
+mmals-stable-plastic-context-memory       <- memory, fusion, distillation
+    |
+mmals-tput                                <- decision, cost, control
+    |
+mmals-goal-adaptive-control               <- goals, forward-backward control
+    |
+synthetic-data-scaling-mmals              <- collapse and scaling signals
+```
+
+For each repository, the questions to answer are simple:
+
+- Which CSV, JSON, or Parquet files are exported at the end of a run?
+- Which columns contain signals relevant to CAL, such as scores, contexts, routes, or decisions?
+- Which signals are currently implicit inside `.pt` files or notebook code, but are not yet exported cleanly?
+
+**What can be done immediately**
+
+An example output file from a recent run should be examined - for example, from `mmals-v1.1-continual-learning-evidence` or `mmals-rc2o-prep-selector-regret`. It could be a result CSV or simply a list of column names. This would allow the mapping to begin from concrete evidence rather than from abstraction.
+
+Alternatively, the inventory can begin from whichever repository is considered the most central or representative of the current pipeline.
+
+> Yes, we will look at that tomorrow. It is late. We should also review the CAL v0.3.2 freeze again to ensure that it properly includes the definitions and semantics that, through these small human-like reflections, help us understand what we are doing and what we would ideally like to achieve. Without that, the project can always collapse into mathematical or metaphysical jargon with no meaning, justified by Colab notebooks, GPU runs, and attractive results that we do not understand and that I cannot defend.
+>
+> The "end" or milestone of MMALS is also still open. The core has not yet been published - I believe we have been using another, perhaps more scientific term - because I no longer have Colab GPU capacity to finish the CORe50, Split-TinyImageNet, and/or another identified run.
+
+Good night - and yes, this is exactly the right moment to stop.
+
+What has just been formulated is in fact the guiding principle of the entire program:
+
+> **Without defensible semantics, results are not publishable - they are merely attractive.**
+
+This is precisely what distinguishes the intended MMALS approach from many continual-learning works: the goal is to be able to say, "I know what I am measuring, I know why I am measuring it, and I can defend every term in front of a reviewer or a practitioner." CAL v0.3.1 is already a good example of this; the five conclusions in Section 9 are defensible without additional GPU runs.
+
+**For the next session - two things should be done in parallel**
+
+First, perform the CAL v0.3.2 pass to integrate the definitions and semantics developed here: regime, nonconformity score, conformal quantile, no-leakage buffer, and gate. These are exactly the terms that were missing for the paper to be readable by a non-specialist without becoming condescending to a reviewer.
+
+Second, inventory the signals exported by the existing repositories in order to understand what is truly available before designing anything new.
+
+**On the "core" milestone and missing GPU resources**
+
+The absence of a complete CORe50 run and Split-TinyImageNet does not necessarily prevent an honest submission, provided the gaps are formulated as explicit scientific limitations rather than concealed omissions. CAL v0.3.1 already does this well for the frozen backbone. The Chronicle can do the same.
+
+> "Chronicle" - where does this term come from? Thank you for the reminder.
+
+The term comes from earlier discussions. It was the name given to **Paper 1**, the first article in the MMALS publication sequence.
+
+The idea behind the word was semantic: a *chronicle* is a faithful and temporally ordered record of what happened - not a theory, not a proof of superiority, but an honest account of a research journey, including controlled negative results and acknowledged limitations.
+
+It was a way to position Paper 1 as:
+
+> "Here is what MMALS is, what we measured, in what order, and what the evidence proves or does not prove."
+
+This contrasts with a paper that would claim to have solved continual learning.
+
+The term also had a practical role in the publication sequence: the Chronicle would establish the arXiv identifier cited by all subsequent papers, including Axis A, Goal-Adaptive, and CAL. It would be the birth certificate of the MMALS research program in the literature.
+
+The name can still be reviewed before submission to determine whether it remains appropriate or whether a more conventional descriptive arXiv title would be preferable. A factual descriptive title may sometimes be easier to position than a programmatic term.
+
+Good night, Quiero.

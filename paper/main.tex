@@ -10,6 +10,7 @@
 \newcommand{\nodecision}{\texttt{NO\_DECISION}}
 
 \providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\providecommand{\passthrough}[1]{#1}
 \DeclareUnicodeCharacter{2192}{\ensuremath{\rightarrow}}
 \DeclareUnicodeCharacter{2193}{\ensuremath{\downarrow}}
 \lstset{
@@ -99,6 +100,9 @@ The common research rule is
 \text{decision}(x)=\begin{cases}\action,&|\Gamma(x)|=1,\\\nodecision,&\text{otherwise}.\end{cases}
 \end{equation}
 This is a conservative baseline for autonomous single-label actionability. It is not the maximum achievable action rate, a universal product policy, or a formal lower bound without specifying the admissible policy family and its costs.
+
+\clearpage
+\input{semantic_foundations_and_research_dialogue.tex}
 
 \section{Experimental Scope}
 The synthesis covers MNIST Robust, FashionMNIST Robust, PermutedMNIST Robust, RotatedMNIST Robust, SplitCIFAR10, SplitCIFAR100, and CORe50. It contains 250,000 selected-policy observations: 62,500 reserved for calibration and 187,500 for deployment. Five seeds and five calibration strategies are evaluated per benchmark.

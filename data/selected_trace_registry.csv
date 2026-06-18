@@ -1,0 +1,8 @@
+dataset,relative_path,sha256,size_bytes,rows,included,purpose
+MNIST,data/raw/MNIST_selected_policy_scores.csv.gz,692f979bb10c380ead0f937cf66d60b54bf3d98d546f7ce44091b37abd141eb3,2649212,20000,True,Portable final-checkpoint selected-policy trace used by the complete replay.
+FashionMNIST,data/raw/FashionMNIST_RC2O_selected_policy_scores.csv.gz,f6434c49239f1c9baf0dc3813ffaa70d6aca95aca0b9eeb1d62696ca2649d660,2386593,20000,True,Portable final-checkpoint selected-policy trace used by the complete replay.
+PermutedMNIST,data/raw/PermutedMNIST_selected_policy_scores.csv.gz,fe5ce7542f0eda85a5ba0b46863087fab4c947f89a17f96a013d507162adb541,2586176,20000,True,Portable final-checkpoint selected-policy trace used by the complete replay.
+RotatedMNIST,data/raw/RotatedMNIST_selected_policy_scores.csv.gz,ff8f74cfa1e7af44d237a97fabe640ff78c05d8f24c60ea611a7bdeb5c475818,2722258,20000,True,Portable final-checkpoint selected-policy trace used by the complete replay.
+SplitCIFAR10,data/raw/SplitCIFAR10_selected_policy_scores.csv.gz,69f7e5f33100b06f62ae4445396adc159537a51cef4b0263f61a59a721ea8ac0,3872837,20000,True,Portable final-checkpoint selected-policy trace used by the complete replay.
+SplitCIFAR100,data/raw/SplitCIFAR100_selected_policy_scores.csv.gz,caf4a4c8c276cf6793a7930ecfe8f10f0a23a141127b68a7167cd4dd6a7431d1,26408538,50000,True,Portable final-checkpoint selected-policy trace used by the complete replay.
+CORe50,data/raw/CORe50_selected_policy_scores.csv.gz,a976cab343da0de2db07c98793cebe606ad42661a80354f3a155c4d2916d6565,45283426,100000,True,Portable final-checkpoint selected-policy trace used by the complete replay.

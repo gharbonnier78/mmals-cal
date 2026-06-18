@@ -12,5 +12,10 @@
   "tests_pass": true,
   "paper_compiled": true,
   "notebook_complete_replay_pass": true,
-  "online_change_detection_implemented": false
+  "online_change_detection_implemented": false,
+  "semantic_foundations_chapter_included": true,
+  "paper_pages": 27,
+  "figure_integrity_pass": true,
+  "release_verification_checks": 10,
+  "pytest_tests_passed": 7
 }

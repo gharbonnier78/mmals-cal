@@ -1,4 +1,5 @@
 {
   "passed": true,
-  "checks": 7
+  "checks": 10,
+  "figure_integrity_pass": true
 }
